@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "BayesianCoin"
+version: 1.0
+license: "MIT"
+type: software
+abstract: "A simple tool for assessing the fairness of a 3D printed coin"
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: Angus S.
+    family-names: Hilts
+    affiliation: University of Vienna
+    orcid: "https://orcid.org/0000-0003-0870-0266"
+keywords:
+  - statistics
+  - bayesian
+  - coin toss
+  - 3d printing 
