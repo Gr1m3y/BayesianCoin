@@ -1,17 +1,33 @@
 # coin-bayes
 
-A terminal tool for checking whether a coin is fair, using Bayesian updating. Flip the coin, press one key for the side it landed on, and watch the belief about p = P(side A) tighten. It was written for a 3D-printed cookie coin (single cookie vs multiple cookies), but the sides are just labels.
+A basic tool which takes a Bayesian approach to determining the fairness of a coin. A series of coin flips can be
+entered as single-key inputs for a custom 3D printed cookie coin. One one side, there is an image of a single cookie
+(for which you hit `s`) and on the other multiple cookies (for which you hit `m`). After each flip, the model updates
+belief. Specifically, it updates the belief that $p = P(\text{side A})$. Once the belief is tight enough, a verdict
+is decided, and the program will inform the user about it's prediction. This process is not fully predictable, but 
+will take approximately 400 flips with default settings. 
+
+_Disclaimer:_ This database was largely generated using Claude Code (Opus 5.5). Code was checked, 
+particularly the statistical model, by hand. Documentation was largely written by hand.
 
 ## Setup
+
+This code base has relatively simple requirements. For ease of use, an environment file is provided. This environment
+can be setup using either `conda` or `mamba`. If either of those are setup, there are no other requirements, the rest is
+handled by the environment. To begin, setup the environment with the following commands.
 
 ```bash
 mamba env create -f environment.yml
 mamba activate coin-bayes
 ```
 
-Only `scipy` and `matplotlib` are needed (`pytest` is for the tests).
-
 ## Use
+
+This program uses a TUI interface. It can be initialized with flips using the `--init` flag if flips have already been 
+counted. Alternatively, it can be started in the default state. Flips will be saved as `coin_flips.txt`. Note that this file
+carries over between sessions so should be deleted or moved if testing another coin. By default, the program tries to estimate
+a credible interval of 95% and will make a verdict when the coin is fair within ± 5%. This can be adjusted with `--rope`. 
+The commands below are several examples of how to launch the program.
 
 ```bash
 python3 main.py                  # fresh start, or resume from coin_flips.txt
@@ -19,13 +35,23 @@ python3 main.py --init 47 27     # start from earlier counts (single, multiple)
 python3 main.py --rope 0.10      # near-fair zone = 0.5 ± 0.10
 ```
 
-Keys: `s` single cookie, `m` multiple cookies, `u` undo, `q` quit. Every flip is saved to `coin_flips.txt` straight away, so you can stop and resume.
+Once the program has startedm, simply flip the coin and push either `s` if it landed on the single-cookie side or `m` if it landed
+on the multiple-cookie side and repeat until a verdict is called. If you make a mistake, push `u` to undo. When you are done, push
+`q` to quit. Flips are saved to `coin_flips.txt`. 
+
+A visualization is show of the approximate probability distribution and the "fairness zone" (_i.e.,_ where the probability should lie
+to be considered fair). Once the final verdict is achieved, an image will be saved in `plots/` with several plots indicating how the
+distribution changed with the flips and what the final result looks like. These are saved as a single `.png` file.
 
 ## What it computes
 
-- Prior: `Beta(1, 1)` (flat; change with `--prior`). Each flip adds 1 to the matching count, so the posterior is `Beta(prior + singles, prior + multiples)`.
-- **Near-fair zone:** p within 0.5 ± `--rope` (default 0.05).
-- **Verdict:** once the posterior probability of the zone reaches `--conf` (default 95%) it says the coin is close enough to fair. If it falls to 5% or below, it says the coin looks biased. In between, keep flipping. No verdict is given before `--min-flips` total flips (default 30), because with a flat prior a handful of identical flips already puts most of the posterior outside the zone.
+To determine if a coin is fair, the following statistics are used. Here, `p` is the probability that the single-cookie side is flipped
+(and the probability that the multiple-cookie side is flipped is simply given by `p - 1`). 
+
+- Prior: `Beta(1, 1)`, a flat distribution, `p` is equally likely to be anything from 0% to 100% (can be changed with `--prior`)
+- Posterior: `Beta(prior + singles, prior + multiples)`, each flip adds one to the respective count
+- **Near-fair zone:** the range of values for which `p`is considered "fair", by default this is 50±5% (_i.e.,_ `0.5±0.05`)
+- **Verdict:** once the posterior probability of the zone is within the desired confidence (95% by default, can be specified with `--conf`), a verdict is determined about whether or not the coin is fair. Keep flipping until a verdict is determined. By default, there must be at least 30 flips (can be changed with `--min-flips`) to prevent an unlikely string of flips moving the distribution outside of the fairness zone completely. 
 
 ## Plots
 
@@ -38,7 +64,7 @@ Saved to `plots/` and opened in a window when a verdict is first reached and aga
 
 ![Example plots from a simulated fair coin](docs/example_plots.png)
 
-*Example from simulated flips of a fair coin, started from 47 single / 27 multiple.*
+*Example from simulated flips of a fair coin*
 
 ## Layout
 
@@ -54,6 +80,11 @@ tests/test_model.py   checks for the maths
 
 Run the tests with `python -m pytest`.
 
-## Tip
+## A word of advice
 
-Alternate which side starts face-up and flip high onto a hard surface. A habit in how you flip can bias the result far more than the coin does.
+When using a coin for chance, the coin itself is only part of the question. How a person flips a coin also has an impact. For example, if you always
+take the coin with the single-cookie side face up, and you flip it so low that it only has time to flip once, then you will almost always get the 
+multiple-cookie side. This means you should think a little about how you flip. The biggest factor is to make sure you flip high enough that the coin 
+has time to flip in the air multiple times. Additionally, try to not bias how you initially hold the coin, such as by always having the same side
+up. Instead try to mix it up (but again, careful to be random about this to not bias it towards the result you want). Then, let the statistics do the
+work for you! If it ends up in the fairness zone, then the coin and your habits are enought to make everything fair!

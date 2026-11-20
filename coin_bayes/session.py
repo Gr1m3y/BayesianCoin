@@ -8,6 +8,8 @@ from .plots import make_figure, save_and_show
 
 def load_history(path):
     """
+    Loads previously saved flips, should be a file with s's and m's, all other characters will be
+    ignored. Returns the string with all other characters filtered
     """
     if not os.path.exists(path):
         return ""
@@ -17,16 +19,24 @@ def load_history(path):
 
 def save_history(path, history):
     """
+    Save history to text file as string of s's and m's
     """
     with open(path, "w") as f:
         f.write(history)
 
 
 def counts(init, history):
+    """
+    Update initial conditions (init) with counts from a history string
+    """
     return init[0] + history.count("s"), init[1] + history.count("m")
 
 
 def current_verdict(init, history, cfg):
+    """
+    Determine the predicted verdict given the fairness (see the `verdict` function in
+    model.py)
+    """
     s, m = counts(init, history)
     return verdict(float(p_near_fair(s, m, cfg)), s + m, cfg)
 
