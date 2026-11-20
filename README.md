@@ -1,4 +1,6 @@
-# coin-bayes
+# BayesianCoin
+
+[![DOI](https://zenodo.org/badge/1452797573.svg)](https://doi.org/10.5281/zenodo.24392649)
 
 A basic tool which takes a Bayesian approach to determining the fairness of a coin. A series of coin flips can be
 entered as single-key inputs for a custom 3D printed cookie coin. One one side, there is an image of a single cookie
